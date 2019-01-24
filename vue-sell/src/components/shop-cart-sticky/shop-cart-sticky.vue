@@ -13,8 +13,10 @@
 
 <script>
   import ShopCart from 'components/shop-cart/shop-cart'
+  import PopupMixin from 'common/mixins/popup'
 
   export default {
+    mixins: [PopupMixin],
     name: 'shop-cart-sticky',
     props: {
       selectFoods: {
@@ -46,17 +48,9 @@
         default: true
       }
     },
-    data () {
-      return {
-        visible: false
-      }
-    },
     methods: {
-      show () {
-        this.visible = true
-      },
-      hide () {
-        this.visible = false
+      drop (el) {
+        this.$refs.shopCart.drop(el)
       }
     },
     components: {

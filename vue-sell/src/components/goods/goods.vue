@@ -32,7 +32,7 @@
           :title="good.name"
         >
           <ul class="foods-list">
-            <li class="foods-item" v-for="(food, index) in good.foods" :key="index">
+            <li class="foods-item" v-for="(food, index) in good.foods" :key="index" @click="showFoodDetail(food)">
               <img class="food-img" :src="food.image">
               <div class="food-info">
                 <h3 class="name">{{food.name}}</h3>
@@ -87,22 +87,63 @@
         slideOptions: {
           click: false,
           directionLockThreshold: 0
-        }      
+        },
+        selectedFood: {}     
       }
     },
     methods: {
       fetch () {
-        getGoods().then(goods => {
-          this.goods = goods
-        })
+        if (!this.fetched) {
+          this.fetched = true
+          getGoods({
+            id: this.seller.id
+          }).then(goods => {
+            this.goods = goods
+          })
+        }
       },
       onAdd (el) {
         this.$refs.shopCart.drop(el)
+      },
+      showFoodDetail (food) {
+        this.selectedFood = food
+        this._showFood()
+        this._showShopCartSticky()
+      },
+      _showFood () {
+        this.foodComp = this.foodComp || this.$createFood({
+          $props: {
+            food: 'selectedFood'
+          },
+          $events: {
+            leave: () => {
+              this._hideShopCartSticky()
+            },
+            add: (el) => {
+              this.shopCartStickyComp.drop(el)
+            }
+          }
+        })
+        this.foodComp.show()
+      },
+      _showShopCartSticky () {
+        this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
+          $props: {
+            selectFoods: 'selectFoods',
+            minPrice: this.seller.minPrice,
+            deliveryPrice: this.seller.deliveryPrice,
+            fold: true
+          }
+        })
+        this.shopCartStickyComp.show()
+      },
+      _hideShopCartSticky () {
+        this.shopCartStickyComp.hide()
       }
     },
     computed: {
       seller () {
-        return this.data.seller
+        return this.data.seller || {}
       },
       selectFoods () {
         let ret = []

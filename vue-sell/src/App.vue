@@ -14,15 +14,15 @@
   import Ratings from './components/ratings/ratings'
   import Tab from './components/tab/tab'
   import { getSeller } from 'api'
+  import qs from 'query-string'
 
   export default {
     name: 'app',
     data () {
       return {
-        seller: {},
-        goods: {},
-        ratings: {},
-        showDetail: true
+        seller: {
+          id: qs.parse(location.search).id
+        }
       }
     },
     created () {
@@ -30,7 +30,9 @@
     },
     methods: {
       _getSeller () {
-        getSeller().then((seller) => {
+        getSeller({
+          id: this.seller.id
+        }).then((seller) => {
           this.seller = seller
         })
       }
@@ -64,10 +66,7 @@
     },
     components: {
       VHeader,
-      Tab,
-      Seller,
-      Goods,
-      Ratings
+      Tab
     }
   }
 </script>

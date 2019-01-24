@@ -9,11 +9,13 @@
       @mask-click="maskClick"
       ref="myPopup3"
     >
-      <transition name="move">
+      <transition name="move"
+        @after-leave="onLeave"
+      >
         <div v-show="visible">
           <div class="list-header">
             <h1 class="title">购物车</h1>
-            <span class="empty" @click="emptyFoods">清空</span>
+            <span class="empty" @click="empty">清空</span>
           </div>
           <cube-scroll class="list-content" ref="listContent">
             <ul>
@@ -22,7 +24,7 @@
                 <div class="right">
                   <span class="price">¥{{food.price * food.count}}</span>
                   <div class="cart-control-wp">
-                    <cart-control :food="food"></cart-control>
+                    <cart-control @add="onAdd" :food="food"></cart-control>
                   </div>
                 </div>
               </li>
@@ -36,9 +38,13 @@
 
 <script>
   import CartControl from 'components/cart-control/cart-control'
-  const EVENT_HIDE = 'hide'
+  import PopupMixin from 'common/mixins/popup'
+  const EVENT_LEAVE = 'leave'
+  const EVENT_ADD = 'add'
+  const EVENT_SHOW = 'show'
 
   export default {
+    mixins: [PopupMixin],
     name: 'shop-cart-list',
     props: {
       selectFoods: {
@@ -48,34 +54,41 @@
         }
       }
     },
-    data () {
-      return {
-        visible: false
-      }
+    created () {
+      this.$on(EVENT_SHOW, () => {
+        this.$nextTick(() => {
+          this.$refs.listContent.refresh()
+        })
+      })
     },
     methods: {
-      show () {
-        this.visible = true
-      },
-      hide () {
-        this.visible = false
-        this.$emit(EVENT_HIDE)
-      },
       maskClick () {
         this.hide()
       },
-      emptyFoods () {
-        this.selectFoods = []
-        this.hide()
+      empty () {
+        this.$createDialog({
+          type: 'confirm',
+          content: '清空购物车吗？',
+          $events: {
+            confirm: () => {
+              this.selectFoods.forEach((food) => {
+                food.count = 0
+              })
+              this.hide()
+            }
+          }
+        }).show()
+      },
+      onLeave () {
+        this.$emit(EVENT_LEAVE)
+      },
+      onAdd (target) {
+        this.$emit(EVENT_ADD, target)
       }
     },
-    computed: {},
     components: {
       CartControl
-    },
-    beforeMount() {},
-    mounted() {},
-    watch: {}
+    }
   }
 </script>
 
@@ -107,7 +120,7 @@
     .list-content
       padding: 0 18px
       max-height: 217px
-      overflow: scroll
+      // overflow: scroll
       background-color: $color-white
       .food
         display: flex

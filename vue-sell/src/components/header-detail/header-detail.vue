@@ -32,8 +32,10 @@
 <script>
   import Star from 'components/star/star'
   import SupportIco from 'components/support-ico/support-ico'
+  import PopupMixin from 'common/mixins/popup'
 
   export default {
+    mixins: [PopupMixin],
     name:'header-detail',
     props: {
       seller: {
@@ -47,19 +49,6 @@
         default () {
           return true
         }
-      }
-    },
-    data () {
-      return {
-        visible: false
-      }
-    },
-    methods: {
-      show () {
-        this.visible = true
-      },
-      hide () {
-        this.visible = false
       }
     },
     components: {
@@ -83,7 +72,7 @@
     color: $color-white
     background-color: $color-background-s
     opacity: 1
-    z-index: 100
+    z-index: 200
     background-filter: blur(10px)
     .name
       font-size: $fontsize-large

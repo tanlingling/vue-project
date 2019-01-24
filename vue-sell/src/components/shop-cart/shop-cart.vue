@@ -3,14 +3,17 @@
     <div class="content" @click="toggleList">
       <div class="content-left">
         <div class="icon-wp">
-          <div class="shop-icon">
+          <div class="shop-icon" :class="shopCartClass">
             <span class="icon-shopping_cart"></span>
           </div>
         </div>
         <div class="total-price">¥{{totalPrice}}</div>
         <div class="desp">另需配送费¥{{deliveryPrice}}</div>
+        <div class="bubble-wp" v-show="totalCount > 0">
+          <bubble :num="totalCount"></bubble>
+        </div>
       </div>
-      <div class="content-right" :class="payClass">
+      <div class="content-right" :class="payClass" @click="pay">
         {{payDesc}}
       </div>
     </div>
@@ -61,16 +64,24 @@
       deliveryPrice: {
         type: Number,
         default: 0
+      },
+      fold: {
+        type: Boolean,
+        default: true
+      },
+      sticky: {
+        type: Boolean,
+        default: false
       }
     },
     data () {
       return {
-        balls: createBalls()
+        balls: createBalls(),
+        listFold: this.fold
       }
     },
     created () {
       this.dropBalls = []
-      this.listFold = true
     },
     methods: {
       drop (el) {
@@ -131,6 +142,12 @@
           $events: {
             hide: () => {
               this.listFold = true
+            },
+            leave: () => {
+              this._hideShopCartSticky()
+            },
+            add: (el) => {
+              this.showShopCartStickyComp.drop(el)
             }
           }
         })
@@ -142,7 +159,7 @@
             selectFoods: 'selectFoods',
             minPrice: 'minPrice',
             deliveryPrice: 'deliveryPrice',
-            // fold: 'listFold',
+            fold: 'listFold',
             list: this.shopCartListComp,
             sticky: 'sticky'
           }
@@ -152,6 +169,19 @@
       _hideShopCartList () {
         const comp = this.sticky ? this.$parent.list : this.shopCartListComp
         comp.hide && comp.hide()
+      },
+      _hideShopCartSticky () {
+        this.showShopCartStickyComp.hide()
+      },
+      pay (e) {
+        if (this.totalPrice < this.minPrice) {
+          return
+        }
+        this.$createDialog({
+          title: '支付',
+          content: `您需要支付${this.totalPrice}元`
+        }).show()
+        e.stopPropagation()
       }
     },
     computed: {
@@ -185,10 +215,27 @@
         } else {
           return 'enough'
         }
+      },
+      shopCartClass () {
+        if (this.totalCount > 0) {
+          return 'blue-cart'
+        } else {
+          return ''
+        }
       }
     },
     components: {
       Bubble
+    },
+    watch: {
+      fold (newValue) {
+        this.listFold = newValue
+      },
+      totalCount (newValue) {
+        if (!this.listFold && !newValue) {
+          this._hideShopCartList()
+        }
+      }
     }
   }
 </script>
@@ -225,6 +272,8 @@
             border-radius: 100%
             font-size: $fontsize-large-xxx
             background-color: rgba(255, 255, 255, 0.2)
+            &.blue-cart
+              background-color: $color-blue
         .total-price
           line-height: 30px
           color: $color-white
@@ -234,6 +283,11 @@
           border-right: 1px solid $color-white-line
         .desp
           font-size: $fontsize-large
+        .bubble-wp
+          position: absolute 
+          left: 50px
+          top: -10px
+          z-index: 12
       .content-right
         position: absolute 
         right: 0
