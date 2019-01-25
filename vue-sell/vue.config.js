@@ -75,5 +75,6 @@ module.exports = {
       .set('components', resolve('src/components'))
       .set('common', resolve('src/common'))
       .set('api', resolve('src/api'))
-  }
+  },
+  publicPath: 'http://localhost:8900/'
 }
